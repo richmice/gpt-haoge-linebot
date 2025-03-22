@@ -1,5 +1,5 @@
 const express = require('express');
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAI = require("openai");
 const line = require('@line/bot-sdk');
 require('dotenv').config();
 
@@ -12,9 +12,9 @@ const lineConfig = {
 };
 const client = new line.Client(lineConfig);
 
-const openai = new OpenAIApi(new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
-}));
+});
 
 app.post('/webhook', line.middleware(lineConfig), async (req, res) => {
   const events = req.body.events;
@@ -30,12 +30,12 @@ app.post('/webhook', line.middleware(lineConfig), async (req, res) => {
     const userMessage = event.message.text;
 
     try {
-      const completion = await openai.createChatCompletion({
+      const completion = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [{ role: 'user', content: userMessage }]
       });
 
-      const gptReply = completion.data.choices[0].message.content;
+      const gptReply = completion.choices[0].message.content;
       return client.replyMessage(event.replyToken, {
         type: 'text',
         text: gptReply
